@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!--<script src="https://cdn.tailwindcss.com"></script>-->
+    <link href="./output.css" rel="stylesheet">
+    <title>Inicio</title>
+</head>
+<body class="bg-gray-100 text-gray-900 min-h-screen flex flex-col">
+
+    <!-- 🧭 NAVBAR -->
+    <nav class="bg-white shadow-md px-6 py-4 flex justify-between items-center">
+      <h1 class="text-xl font-bold text-indigo-600">DeepChat</h1>
+      <div class="space-x-4">
+        <a href="#" class="text-gray-600 hover:text-indigo-600">Inicio</a>
+        <a href="#" class="text-gray-600 hover:text-indigo-600">Ayuda</a>
+      </div>
+    </nav>
+  
+    <!-- 🧱 LAYOUT PRINCIPAL -->
+    <div class="flex flex-grow h-full">
+  
+      <!-- 🧭 SIDEBAR IZQUIERDA -->
+      <aside class="w-1/4 bg-white p-6 shadow-inner flex flex-col space-y-4">
+        <div>
+          <h2 class="text-lg font-semibold mb-2">Cargar archivo</h2>
+          <input type="file" class="w-full p-2 border border-gray-300 rounded-md bg-white shadow-sm" />
+        </div>
+        <div>
+          <button class="bg-indigo-600 text-white w-full py-2 rounded-md hover:bg-indigo-700 transition">
+            Analizar
+          </button>
+        </div>
+      </aside>
+  
+      <!-- 🧠 ÁREA PRINCIPAL -->
+      <main class="flex-grow p-8 space-y-6">
+  
+        <!-- 📥 Respuesta -->
+        <div>
+          <label class="block mb-2 text-sm font-medium text-gray-700">Respuesta</label>
+          <div id="respond" class="w-full p-4 border border-gray-300 rounded-md bg-gray-50 min-h-[150px]">
+            <p class="text-gray-600">Aquí se mostrará la respuesta del análisis.</p>
+          </div>
+        </div>
+
+         <!-- 💬 Pregunta + Enviar -->
+        <form id="form-chat" class="space-y-2" enctype="multipart/form-data">
+            <label for="message" class="block text-sm font-medium text-gray-700">Preguntale algo a los datos</label>
+            <div class="flex">
+              <input type="text" name="message" id="message" placeholder="Ej: ¿Qué columnas tienen datos faltantes?"
+                class="flex-grow p-3 border border-gray-300 rounded-l-md bg-white shadow-sm" required />
+              <button type="submit" class="bg-indigo-600 text-white px-4 py-2 rounded-r-md hover:bg-indigo-700 transition">
+                Enviar
+              </button>
+            </div>
+        </form>
+  
+      </main>
+    </div>
+  
+  </body>
+  <script>
+    const form = document.getElementById("form-chat");
+    const input = document.getElementById("message");
+    const respuesta = document.getElementById("respond");
+
+    form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        //const mensaje = input.value.trim();
+        const dataForm = new FormData(form);
+        const formDataObject = Object.fromEntries(dataForm.entries());
+        
+        //if (!mensaje) return;
+
+        respuesta.innerHTML = "<p class='text-gray-400 italic'>Cargando respuesta...</p>";
+
+        try {
+            const res = await fetch("/api/chat", {
+                method: "POST",
+                headers: {
+                "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ formDataObject })
+            });
+
+            const data = await res.json();
+            respuesta.innerHTML = `<p>${data.respuesta || "No se recibió respuesta del servidor."}</p>`;
+        } catch (err) {
+            console.error(err);
+            respuesta.innerHTML = `<p class="text-red-500">Ocurrió un error al enviar la consulta.</p>`;
+        }
+
+        input.value = "";
+    });
+  </script>
+</html>

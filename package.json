@@ -1,0 +1,23 @@
+{
+  "name": "deepchat",
+  "version": "1.0.0",
+  "description": "chat con IA para pruebas ",
+  "main": "app.js",
+  "type": "module",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node --watch ./src/app.js",
+    "build:css": "tailwindcss -i ./public/style.css -o ./public/output.css --watch"
+  },
+  "author": "Markos",
+  "license": "ISC",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.5.0",
+    "express": "^5.1.0",
+    "openai": "^4.93.0"
+  },
+  "devDependencies": {
+    "tailwindcss": "^3.4.17"
+  }
+}
