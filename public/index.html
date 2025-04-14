@@ -28,7 +28,7 @@
           <input type="file" class="w-full p-2 border border-gray-300 rounded-md bg-white shadow-sm" />
         </div>
         <div>
-          <button class="bg-indigo-600 text-white w-full py-2 rounded-md hover:bg-indigo-700 transition">
+          <button id="btn-analizar" class="bg-indigo-600 text-white w-full py-2 rounded-md hover:bg-indigo-700 transition">
             Analizar
           </button>
         </div>
@@ -40,7 +40,7 @@
         <!-- 📥 Respuesta -->
         <div>
           <label class="block mb-2 text-sm font-medium text-gray-700">Respuesta</label>
-          <div id="respond" class="w-full p-4 border border-gray-300 rounded-md bg-gray-50 min-h-[150px]">
+          <div id="respond" class="w-full p-4 border border-gray-300 rounded-md bg-gray-50 min-h-[150px] max-h-[300px] overflow-y-auto shadow-sm">
             <p class="text-gray-600">Aquí se mostrará la respuesta del análisis.</p>
           </div>
         </div>
@@ -93,6 +93,45 @@
         }
 
         input.value = "";
+    });
+
+    // Cargar archivo y enviar al servidor
+    
+    document.addEventListener("DOMContentLoaded", () => {
+      
+      const btnAnalizar = document.getElementById("btn-analizar");
+      const fileInput = document.querySelector('input[type="file"]');
+
+      btnAnalizar.addEventListener("click", async () => {
+        const archivo = fileInput.files[0];
+        if (!archivo) {
+          alert("Por favor selecciona un archivo.");
+          return;
+        }
+
+        const formData = new FormData();
+        formData.append("archivo", archivo);
+
+        try {
+          const response = await fetch("/api/upload", {
+            method: "POST",
+            body: formData,
+          });
+
+          const data = await response.json();
+          console.log("Respuesta del servidor:", data);
+
+          if (data.contenido) {
+            alert("Archivo analizado correctamente. Mira la consola para ver el contenido.");
+            // Podés también mostrar el resultado en pantalla si querés
+          } else if (data.error) {
+            alert("Error: " + data.error);
+          }
+        } catch (error) {
+          console.error("Error al subir el archivo:", error);
+          alert("Ocurrió un error al subir el archivo.");
+        }
+      });
     });
   </script>
 </html>

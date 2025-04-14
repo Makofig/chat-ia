@@ -13,9 +13,12 @@
   "license": "ISC",
   "dependencies": {
     "cors": "^2.8.5",
+    "deepchat": "file:",
     "dotenv": "^16.5.0",
     "express": "^5.1.0",
-    "openai": "^4.93.0"
+    "multer": "^1.4.5-lts.2",
+    "openai": "^4.93.0",
+    "pdf2json": "^3.1.5"
   },
   "devDependencies": {
     "tailwindcss": "^3.4.17"

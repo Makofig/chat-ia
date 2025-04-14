@@ -1,6 +1,7 @@
 import express from 'express';  
 import cors from 'cors'; // Importar cors para permitir solicitudes de diferentes dominios
 import router from '../routes/chat.js'; // Importar el router de chat.js
+import routerUpload from '../routes/upload.js'; // Importar el router de upload.js
 
 /* ruta absiluta */
 import { fileURLToPath } from 'url';
@@ -17,6 +18,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static('public'));
 app.use('/', router); // Usar el router importado 
+app.use('/', routerUpload); // Usar el router importado
 // Middleware para manejar las solicitudes a la ruta raíz
 
 app.get('/', (req, res) => {
