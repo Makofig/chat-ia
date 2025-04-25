@@ -45,16 +45,42 @@
           </div>
         </div>
 
+        <!-- 📥 Respuesta -->
+        <div>
+          <label class="block mb-2 text-sm font-medium text-gray-700">Transcripción</label>
+          <div id="respond-audio" class="w-full p-4 border border-gray-300 rounded-md bg-gray-50 min-h-[150px] max-h-[300px] overflow-y-auto shadow-sm">
+            <p class="text-gray-600">Aquí se mostrará la Transcripción del audio</p>
+          </div>
+        </div>
+
          <!-- 💬 Pregunta + Enviar -->
-        <form id="form-chat" class="space-y-2" enctype="multipart/form-data">
-            <label for="message" class="block text-sm font-medium text-gray-700">Preguntale algo a los datos</label>
-            <div class="flex">
-              <input type="text" name="message" id="message" placeholder="Ej: ¿Qué columnas tienen datos faltantes?"
-                class="flex-grow p-3 border border-gray-300 rounded-l-md bg-white shadow-sm" required />
-              <button type="submit" class="bg-indigo-600 text-white px-4 py-2 rounded-r-md hover:bg-indigo-700 transition">
-                Enviar
-              </button>
-            </div>
+         <form id="form-chat" class="space-y-2" enctype="multipart/form-data">
+          <label for="message" class="block text-sm font-medium text-gray-700">
+            Preguntale algo a los datos
+          </label>
+          <div class="flex space-x-1">
+            <input
+              type="text"
+              name="message"
+              id="message"
+              placeholder="Ej: ¿Qué columnas tienen datos faltantes?"
+              class="flex-grow p-3 border border-gray-300 rounded-md bg-white shadow-sm"
+              required
+            />
+            <button
+              type="submit"
+              class="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 transition"
+            >
+              Enviar
+            </button>
+            <button
+              type="button"
+              id="btn-grabar"
+              class="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 transition"
+            >
+              🎙️ Grabar
+            </button>
+          </div>
         </form>
   
       </main>
@@ -132,6 +158,63 @@
           alert("Ocurrió un error al subir el archivo.");
         }
       });
+    });
+
+    const btn = document.getElementById("btn-grabar");
+    const mensaje = document.getElementById("respond-audio");
+
+    let mediaRecorder;
+    let audioChunks = [];
+
+    btn.addEventListener('click', async () => {
+        if (!mediaRecorder || mediaRecorder.state === 'inactive') {
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            mediaRecorder = new MediaRecorder(stream);   
+
+            mediaRecorder.ondataavailable = (event) => {
+              if (event.data.size > 0) {
+                audioChunks.push(event.data);
+              }
+            };
+
+            mediaRecorder.onstop = async () => {
+                const blob = new Blob(audioChunks, { type: 'audio/wav' });
+                const formData = new FormData();
+                formData.append('audio', blob, 'audio.wav');
+                mensaje.textContent = '⏳ Enviando audio...';
+                
+                const res = await fetch('/api/audio', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await res.json();
+                console.log("Respuesta del servidor:", data);
+                mensaje.textContent = `🧠 Texto: ${data.respuesta}`;
+
+                // Realizar un segundo fetch a la ruta /api/chat para hacer la consulta al modelo
+                const chatResponse = await fetch('/api/chat', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ query: data.respuesta }) // Enviar el texto transcrito como consulta al modelo
+                });
+
+                const chatData = await chatResponse.json();
+                console.log("Respuesta del chat:", chatData);
+                respuesta.innerHTML = `<p>${chatData.respuesta || "No se recibió respuesta del servidor."}</p>`;
+
+                audioChunks = []; // Limpiar los chunks de audio después de enviar
+            };
+
+            mediaRecorder.start();
+            btn.textContent = '🛑 Detener grabación';
+            
+        } else if (mediaRecorder.state === 'recording') {
+            mediaRecorder.stop();
+            btn.textContent = '🎙️ Grabar';
+        }
     });
   </script>
 </html>
