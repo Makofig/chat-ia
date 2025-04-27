@@ -1,2 +1,5 @@
 .env 
 node_modules
+output/*.wav 
+output/*.mp3
+deepchat/

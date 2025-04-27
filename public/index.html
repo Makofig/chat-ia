@@ -19,10 +19,10 @@
     </nav>
   
     <!-- 🧱 LAYOUT PRINCIPAL -->
-    <div class="flex flex-grow h-full">
+    <div class="flex h-full">
   
       <!-- 🧭 SIDEBAR IZQUIERDA -->
-      <aside class="w-1/4 bg-white p-6 shadow-inner flex flex-col space-y-4">
+      <aside class="w-63 min-w-[200px] max-w-[300px] bg-white p-6 shadow-inner flex flex-col space-y-4">
         <div>
           <h2 class="text-lg font-semibold mb-2">Cargar archivo</h2>
           <input type="file" class="w-full p-2 border border-gray-300 rounded-md bg-white shadow-sm" />
@@ -35,10 +35,10 @@
       </aside>
   
       <!-- 🧠 ÁREA PRINCIPAL -->
-      <main class="flex-grow p-8 space-y-6">
+      <main class="flex-grow p-8 space-y-6 max-w-4xl overflow-hidden">
   
         <!-- 📥 Respuesta -->
-        <div>
+        <div class="flex-grow overflow-hidden">
           <label class="block mb-2 text-sm font-medium text-gray-700">Respuesta</label>
           <div id="respond" class="w-full p-4 border border-gray-300 rounded-md bg-gray-50 min-h-[150px] max-h-[300px] overflow-y-auto shadow-sm">
             <p class="text-gray-600">Aquí se mostrará la respuesta del análisis.</p>
@@ -46,7 +46,7 @@
         </div>
 
         <!-- 📥 Respuesta -->
-        <div>
+        <div class="flex-grow overflow-hidden">
           <label class="block mb-2 text-sm font-medium text-gray-700">Transcripción</label>
           <div id="respond-audio" class="w-full p-4 border border-gray-300 rounded-md bg-gray-50 min-h-[150px] max-h-[300px] overflow-y-auto shadow-sm">
             <p class="text-gray-600">Aquí se mostrará la Transcripción del audio</p>
@@ -76,7 +76,7 @@
             <button
               type="button"
               id="btn-grabar"
-              class="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 transition"
+              class="bg-indigo-600 text-white px-4 py-2 rounded-md mx-1px hover:bg-indigo-700 transition"
             >
               🎙️ Grabar
             </button>
@@ -113,6 +113,9 @@
 
             const data = await res.json();
             respuesta.innerHTML = `<p>${data.respuesta || "No se recibió respuesta del servidor."}</p>`;
+            // esto es para reproducir el audio, deberiamos agregarlo en la respuesta
+            const audio = new Audio("data:audio/mp3;base64," + data.audio);
+            audio.play();
         } catch (err) {
             console.error(err);
             respuesta.innerHTML = `<p class="text-red-500">Ocurrió un error al enviar la consulta.</p>`;
@@ -191,8 +194,12 @@
                 const data = await res.json();
                 console.log("Respuesta del servidor:", data);
                 mensaje.textContent = `🧠 Texto: ${data.respuesta}`;
+                // esto es para reproducir el audio, deberiamos agregarlo en la respuesta
+                //const audio = new Audio("data:audio/mp3;base64," + data.audio);
+                //audio.play();
 
                 // Realizar un segundo fetch a la ruta /api/chat para hacer la consulta al modelo
+                
                 const chatResponse = await fetch('/api/chat', {
                     method: 'POST',
                     headers: {
@@ -202,9 +209,12 @@
                 });
 
                 const chatData = await chatResponse.json();
-                console.log("Respuesta del chat:", chatData);
+                
                 respuesta.innerHTML = `<p>${chatData.respuesta || "No se recibió respuesta del servidor."}</p>`;
 
+                const audio = new Audio("data:audio/mp3;base64," + chatData.audio);
+                audio.play();
+              
                 audioChunks = []; // Limpiar los chunks de audio después de enviar
             };
 

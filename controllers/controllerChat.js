@@ -3,7 +3,39 @@ import dotenv from "dotenv";
 import path from "path";
 import fs from "fs";    
 import {exec} from "child_process";
+import respondAudio from "../middlewares/respondAudio.js"; // Importar la función respondAudio
+import util from 'util'; // Importar util para promisificar exec
 
+const execPromise = util.promisify(exec); // Promisificar exec para usar async/await
+/*
+async function respondAudio(textoSeguro) {
+    return new Promise((resolve, reject) => {
+        exec(`python tts.py "${textoSeguro}"`, { encoding: 'utf-8' }, (error, stdout, stderr) => {
+            if (error) {
+                console.error(`Error al generar el audio: ${error.message}`);
+                return res.status(500).json({ error: "Error al procesar el audio" });
+            }
+            if (stderr) {
+                console.error(`Error en el script de Python: ${stderr}`);
+                return res.status(500).json({ error: "Error en el procesamiento del audio" });
+            }
+            
+            fs.readFile("./output/respuesta.mp3", (err, audioData) => {
+                if (err) {
+                    console.error("Error al leer el archivo de audio:", err);
+                    return res.status(500).json({ error: "Error al procesar el audio" });
+                }
+                // Convertir el audio a formato WAV
+                const audioBase64  = audioData.toString('base64'); // Convertir el buffer a base64
+                console.log("Audio generado correctamente");
+                // Enviar el audio como respuesta
+                resolve(audioBase64);
+                
+            });
+        });
+    });
+}
+*/
 dotenv.config(); // Cargar las variables de entorno desde el archivo .env   
 
 const openai = new OpenAI({
@@ -19,6 +51,7 @@ const textToChat = async (req, res) => {
         const { query } = req.body; // Transcripción del audio (query)
         console.log("query:", query); // Log the query
         const { formDataObject } = req.body; // Contenido del formulario
+        
         const message = formDataObject ? formDataObject.message : null; // Si existe formDataObject, obtener el mensaje
         // Verificar que solo se reciba uno de los dos
         if ((!query && !message) || (query && message)) {
@@ -40,11 +73,20 @@ const textToChat = async (req, res) => {
         });
         
         const response = completion.choices[0].message.content;
-
         console.log("Respuesta de OpenAI:", response); // Log the response from OpenAI
+        const textoSeguro = response
+            .replace(/[\r\n]+/g, ' ')  // Reemplaza saltos de línea por espacios
+            .replace(/"/g, '\\"')      // Escapa comillas
+            .replace(/\*/g, '')        // Elimina el carácter especial *
+            .trim();    // Eliminar comillas dobles del texto
+        const audioGenerado = await respondAudio(textoSeguro); 
+      
         // Aquí puedes agregar la lógica para procesar el mensaje y generar una respuesta
         //const response = `${message}`;
-        res.status(200).json({respuesta: response}); // Enviar la respuesta como JSON
+        res.status(200).json({
+            respuesta: response,
+            audio: audioGenerado // Enviar el audio generado como respuesta
+        }); // Enviar la respuesta como JSON
     } catch (error) {
         console.error("Error en textToChat:", error);
         res.status(500).json({ error: "Error interno del servidor" });
@@ -62,6 +104,10 @@ const audioGrabar = async (req, res) => {
         return res.status(404).json({ error: 'Archivo no encontrado' });
     }
     */
+    // nombre fijo del archivo de audio
+    // const nombreFijo = "audio.wav"; // Nombre fijo del archivo de audio
+    // const rutaAudio = path.resolve("uploads", nombreFijo); // Ruta del archivo subido
+    // fs.renameSync(archivo.path, rutaAudio); // Renombrar el archivo a .wav
     const rutaAudio = path.resolve(archivo.path); // Ruta del archivo subido
     console.log("Ruta del archivo de audio:", rutaAudio); // Log the audio file path
     const rutaFinal = rutaAudio + ".wav"; // Ruta del archivo de audio final
@@ -70,7 +116,28 @@ const audioGrabar = async (req, res) => {
     fs.renameSync(rutaAudio, rutaFinal); // Renombrar el archivo a .wav
     console.log("✅ Audio grabado en", rutaFinal);
     // Ejecutar Python con Whisper 
-    exec(`python transcribir.py "${rutaFinal}"`, (error, stdout, stderr) => {
+    try {
+        const { stdout, stderr } = await execPromise(`python transcribir.py "${rutaFinal}"`, { encoding: 'UTF-8' });
+        if (stderr) {
+            console.error(`Error en el script de Python: ${stderr}`);
+            return res.status(500).json({ error: "Error en el procesamiento del audio" });
+        }
+       
+        const textoTranscrito = Buffer.from(stdout, 'UTF-8').toString().trim(); // Convertir el buffer a string
+        const soloTexto = textoTranscrito.replace(/^.*\r?\n/, '');
+
+        // esta parte es la generacion de audio lo deberiamos agregar a la funcion respondAudio
+        const audioGenerado = await respondAudio(soloTexto); // Llamar a la función para responder con el audio
+        res.status(200).json({ 
+            respuesta: soloTexto, 
+            audio: audioGenerado // Enviar el audio generado como respuesta 
+        }); // Enviar la respuesta como JSON
+    } catch (error) {
+        console.error("❌ Error general:", error);
+        return res.status(500).json({ error: "Error al procesar el audio" });
+    }
+    /*
+    exec(`python transcribir.py "${rutaFinal}"`,{ encoding: 'utf-8'}, (error, stdout, stderr) => {
         if (error) {
             console.error(`Error al ejecutar el script de Python: ${error.message}`);
             return res.status(500).json({ error: "Error al procesar el audio" });
@@ -80,11 +147,23 @@ const audioGrabar = async (req, res) => {
             return res.status(500).json({ error: "Error en el procesamiento del audio" });
         }
         // Aquí puedes procesar la salida del script de Python
-        const textoTranscrito = stdout.trim(); // Eliminar espacios en blanco al principio y al final
+        //const textoTranscrito = stdout.trim(); // Eliminar espacios en blanco al principio y al final
+        const textoTranscrito = Buffer.from(stdout, 'utf-8').toString().trim(); // Convertir el buffer a string
         console.log(`Texto transcrito: ${stdout}`); // 
         const soloTexto = textoTranscrito.replace(/^.*\r?\n/, '');
-        res.status(200).json({ respuesta: soloTexto }); // Enviar la respuesta como JSON
+        try {
+            const audioGenerado = await respondAudio(soloTexto); // Llamar a la función para responder con el audio
+            res.status(200).json({ 
+                respuesta: soloTexto, 
+                audio: audioGenerado // Enviar el audio generado como respuesta 
+            }); // Enviar la respuesta como JSON
+        } catch (error) {
+            console.error("Error al generar el audio:", error);
+            res.status(500).json({ error: "Error al generar el audio" });
+        }
+        
     });
+    */
 };
 
 export default {
