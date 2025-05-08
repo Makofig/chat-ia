@@ -212,7 +212,7 @@
                 
                 respuesta.innerHTML = `<p>${chatData.respuesta || "No se recibió respuesta del servidor."}</p>`;
 
-                const audio = new Audio("data:audio/mp3;base64," + chatData.audio);
+                const audio = new Audio("data:audio/wav;base64," + chatData.audio);
                 audio.play();
               
                 audioChunks = []; // Limpiar los chunks de audio después de enviar

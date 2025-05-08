@@ -3,9 +3,12 @@ import sys
 from whisper.utils import get_writer
 import io 
 
-def save_file(results, format='txt'): 
-    writer = get_writer(format, './output/')
-    writer(results, f'transcripcion.{format}')
+##def save_file(results, format='txt'): 
+    ##writer = get_writer(format, './output/')
+    ##writer(results, f'transcripcion.{format}')
+def save_file(text, filename='transcripcion.txt'):
+    with open(f'./output/{filename}', 'w', encoding='utf-8') as f:
+        f.write(text)
 
 sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
 archivo = sys.argv[1]
@@ -24,7 +27,7 @@ try:
     print("Texto transcrito:")
     print(resultado["text"]) 
     # Guardamos el resultado en un archivo de texto
-    save_file(resultado, 'txt')
+    save_file(resultado["text"])
 
 except Exception as e:
     print(f"Hubo un error al transcribir el archivo: {e}")

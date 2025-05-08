@@ -5,6 +5,7 @@ import fs from "fs";
 import {exec} from "child_process";
 import respondAudio from "../middlewares/respondAudio.js"; // Importar la función respondAudio
 import util from 'util'; // Importar util para promisificar exec
+import Stream from "stream";
 
 const execPromise = util.promisify(exec); // Promisificar exec para usar async/await
 /*
@@ -37,11 +38,12 @@ async function respondAudio(textoSeguro) {
 }
 */
 dotenv.config(); // Cargar las variables de entorno desde el archivo .env   
-
+/*
 const openai = new OpenAI({
     baseURL: "https://openrouter.ai/api/v1", // Cambia esto a la URL base de OpenRouter
     apiKey: process.env.OPENAI_API_KEY, 
 }); 
+*/
 
 const textToChat = async (req, res) => {
     try {
@@ -62,6 +64,7 @@ const textToChat = async (req, res) => {
         if (userMessage.length > 1000) {
             return res.status(400).json({ error: "El mensaje no puede tener más de 1000 caracteres" });
         }
+        /*
         const completion = await openai.chat.completions.create({
             messages: [{ role: "user", 
                 "content": [{
@@ -70,9 +73,42 @@ const textToChat = async (req, res) => {
                 }] 
             }],
             model: "google/gemma-2-9b-it:free",
-        });
+            tool_choice: "auto", 
+            tools: [
+                {
+                    type: "mcp",
+                    mcp_url: "http://localhost:5010",
+                }
+            ]       
+        });*/
+        const respuestaIA  = await fetch('http://localhost:11434/api/chat', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                model: 'mistral',
+                messages: [
+                    { role: 'system', content: 'Sos un asistente útil y conciso.' },
+                    { role: 'user', content: userMessage }
+                ],
+                stream: false 
+            })
+        }); 
         
-        const response = completion.choices[0].message.content;
+        if (!respuestaIA.ok) {
+            const errorText = await respuestaIA.text();
+            throw new Error(`Error del modelo: ${respuestaIA.status} - ${errorText}`);
+        }
+        const raw = await respuestaIA.text(); // Leer como texto primero
+        console.log("Respuesta cruda de Ollama:", raw); 
+
+        let data; 
+        try{
+            data = JSON.parse(raw); 
+        } catch (e) {
+            throw new Error("Respuesta no es JSON válido. Contenido:\n" + raw);
+        }
+        //const response = completion.choices[0].message.content;
+        const response = data.message.content; 
         console.log("Respuesta de OpenAI:", response); // Log the response from OpenAI
         const textoSeguro = response
             .replace(/[\r\n]+/g, ' ')  // Reemplaza saltos de línea por espacios
@@ -127,6 +163,11 @@ const audioGrabar = async (req, res) => {
         const soloTexto = textoTranscrito.replace(/^.*\r?\n/, '');
 
         // esta parte es la generacion de audio lo deberiamos agregar a la funcion respondAudio
+        if(soloTexto === ""){
+            return res.status(400).json({ 
+                error: "La transcripción del audio está vacía. Por favor, asegurate de que el audio tenga contenido claro." 
+            });
+        } 
         const audioGenerado = await respondAudio(soloTexto); // Llamar a la función para responder con el audio
         res.status(200).json({ 
             respuesta: soloTexto, 
