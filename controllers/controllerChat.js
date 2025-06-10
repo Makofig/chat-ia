@@ -148,13 +148,14 @@ const textToChat = async (req, res) => {
             .replace(/[^\x00-\x7F]/g, '') // elimina emojis y caracteres no ASCII
             .replace(/\s+/g, ' ') // normaliza espacios
             .trim();
-        const audioGenerado = await respondAudio(textoSeguro); 
+
+        // const audioGenerado = await respondAudio(textoSeguro); 
       
         // Aquí puedes agregar la lógica para procesar el mensaje y generar una respuesta
         //const response = `${message}`;
         res.status(200).json({
             respuesta: response,
-            audio: audioGenerado // Enviar el audio generado como respuesta
+            //audio: audioGenerado // Enviar el audio generado como respuesta
         }); // Enviar la respuesta como JSON
     } catch (error) {
         console.error("Error en textToChat:", error);
@@ -201,10 +202,10 @@ const audioGrabar = async (req, res) => {
                 error: "La transcripción del audio está vacía. Por favor, asegurate de que el audio tenga contenido claro." 
             });
         } 
-        const audioGenerado = await respondAudio(soloTexto); // Llamar a la función para responder con el audio
+        //const audioGenerado = await respondAudio(soloTexto); // Llamar a la función para responder con el audio
         res.status(200).json({ 
             respuesta: soloTexto, 
-            audio: audioGenerado // Enviar el audio generado como respuesta 
+            //audio: audioGenerado // Enviar el audio generado como respuesta 
         }); // Enviar la respuesta como JSON
     } catch (error) {
         console.error("❌ Error general:", error);

@@ -50,4 +50,4 @@ server.tool(
 
 const transport = new StdioServerTransport()
 await server.connect(transport)
-console.log("Server started on port 5010")
+console.log("Server MCP started on port 5010")
