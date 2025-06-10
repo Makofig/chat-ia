@@ -7,24 +7,26 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node --watch ./src/app.js",
-    "build:css": "tailwindcss -i ./public/style.css -o ./public/output.css --watch"
+    "build:css": "tailwindcss -i ./input.css -o ./public/output.css --watch"
   },
   "author": "Markos",
   "license": "ISC",
   "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.10.2",
+    "@modelcontextprotocol/sdk": "^1.11.1",
     "cors": "^2.8.5",
     "deepchat": "file:",
     "dotenv": "^16.5.0",
     "express": "^5.1.0",
-    "multer": "^1.4.5-lts.2",
+    "multer": "^2.0.0",
     "node-record-lpcm16": "^1.0.1",
     "openai": "^4.93.0",
     "pdf2json": "^3.1.5",
+    "pnpx": "^0.0.1",
     "tsx": "^4.19.3",
-    "zod": "^3.24.3"
+    "zod": "^3.24.4"
   },
   "devDependencies": {
-    "tailwindcss": "^3.4.17"
+    "ts-node": "^10.9.2",
+    "typescript": "^5.8.3"
   }
 }

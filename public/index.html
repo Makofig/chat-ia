@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <!--<script src="https://cdn.tailwindcss.com"></script>-->
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <link href="./output.css" rel="stylesheet">
     <title>Inicio</title>
 </head>
@@ -19,10 +20,10 @@
     </nav>
   
     <!-- 🧱 LAYOUT PRINCIPAL -->
-    <div class="flex h-full">
+    <div class="grid grid-cols-[250px_1fr] h-full">
   
       <!-- 🧭 SIDEBAR IZQUIERDA -->
-      <aside class="w-63 min-w-[200px] max-w-[300px] bg-white p-6 shadow-inner flex flex-col space-y-4">
+      <aside class=" bg-white p-6 shadow-inner flex flex-col space-y-4">
         <div>
           <h2 class="text-lg font-semibold mb-2">Cargar archivo</h2>
           <input type="file" class="w-full p-2 border border-gray-300 rounded-md bg-white shadow-sm" />
@@ -35,12 +36,12 @@
       </aside>
   
       <!-- 🧠 ÁREA PRINCIPAL -->
-      <main class="flex-grow p-8 space-y-6 max-w-4xl overflow-hidden">
+      <main class="flex-grow p-8 space-y-6 overflow-hidden">
   
         <!-- 📥 Respuesta -->
         <div class="flex-grow overflow-hidden">
           <label class="block mb-2 text-sm font-medium text-gray-700">Respuesta</label>
-          <div id="respond" class="w-full p-4 border border-gray-300 rounded-md bg-gray-50 min-h-[150px] max-h-[300px] overflow-y-auto shadow-sm">
+          <div id="respond" class="w-full p-4 border border-gray-300 rounded-md bg-gray-50 min-h-[150px] max-h-[300px] overflow-y-auto shadow-sm space-y-4">
             <p class="text-gray-600">Aquí se mostrará la respuesta del análisis.</p>
           </div>
         </div>
@@ -54,7 +55,7 @@
         </div>
 
          <!-- 💬 Pregunta + Enviar -->
-         <form id="form-chat" class="space-y-2" enctype="multipart/form-data">
+         <form id="form-chat" class="space-y-2 block" enctype="multipart/form-data">
           <label for="message" class="block text-sm font-medium text-gray-700">
             Preguntale algo a los datos
           </label>
@@ -89,30 +90,60 @@
   </body>
   <script>
     const form = document.getElementById("form-chat");
-    const input = document.getElementById("message");
-    const respuesta = document.getElementById("respond");
+    const text = document.getElementById("message");
+    //const respuesta = document.getElementById("respond");
+
+    function appendResponse(content, type = "respuesta") {
+      const container = document.getElementById("respond");
+
+      const message = document.createElement("div");
+      message.classList.add(
+        "p-3", "rounded", "shadow", "mb-2", "max-w-[70%]", "break-words"
+      );
+
+      if (type === "pregunta") {
+        message.classList.add("bg-blue-100", "text-blue-900", "ml-auto", "text-right");
+      } else {
+        message.classList.add("bg-gray-100", "text-gray-800", "mr-auto", "text-left");
+      }
+
+      message.innerHTML = content;
+
+      container.appendChild(message);
+      container.scrollTop = container.scrollHeight;
+    }
 
     form.addEventListener("submit", async (e) => {
         e.preventDefault();
-        //const mensaje = input.value.trim();
+        //const mensaje = text.value.trim();
+        // Eliminar el mensaje inicial si existe
+        const placeholder = document.querySelector("#respond p.text-gray-600");
+        if (placeholder) {
+          placeholder.remove();
+        }
         const dataForm = new FormData(form);
         const formDataObject = Object.fromEntries(dataForm.entries());
         
         //if (!mensaje) return;
-
-        respuesta.innerHTML = "<p class='text-gray-400 italic'>Cargando respuesta...</p>";
+        appendResponse(formDataObject.message, "pregunta");
+        text.value = "";
+        // respuesta.innerHTML = "<p class='text-gray-400 italic'>Cargando respuesta...</p>";
+        // appendResponse("<p class='text-gray-400 italic'>Cargando respuesta...</p>");
 
         try {
             const res = await fetch("/api/chat", {
                 method: "POST",
                 headers: {
-                "Content-Type": "application/json"
+                "Content-Type": "application/json", 
                 },
                 body: JSON.stringify({ formDataObject })
             });
 
             const data = await res.json();
-            respuesta.innerHTML = `<p>${data.respuesta || "No se recibió respuesta del servidor."}</p>`;
+            const content = `<p>${data.respuesta || "No se recibió respuesta del servidor."}</p>`;
+            // appendResponse(content);
+            appendResponse(content, "respuesta");
+            // respuesta.innerHTML = `<p>${data.respuesta || "No se recibió respuesta del servidor."}</p>`;
             // esto es para reproducir el audio, deberiamos agregarlo en la respuesta
             const audio = new Audio("data:audio/mp3;base64," + data.audio);
             audio.play();
@@ -120,8 +151,6 @@
             console.error(err);
             respuesta.innerHTML = `<p class="text-red-500">Ocurrió un error al enviar la consulta.</p>`;
         }
-
-        input.value = "";
     });
 
     // Cargar archivo y enviar al servidor
@@ -148,9 +177,9 @@
           });
 
           const data = await response.json();
-          console.log("Respuesta del servidor:", data);
+          console.log("Respuesta del servidor:", data.respond);
 
-          if (data.contenido) {
+          if (data.respond) {
             alert("Archivo analizado correctamente. Mira la consola para ver el contenido.");
             // Podés también mostrar el resultado en pantalla si querés
           } else if (data.error) {

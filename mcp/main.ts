@@ -1,6 +1,7 @@
 import {McpServer} from '@modelcontextprotocol/sdk/server/mcp.js' 
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
 import { z } from 'zod'
+import fetch from 'node-fetch';
 
 const server = new McpServer({
     name: "mcp-server",
@@ -10,7 +11,7 @@ const server = new McpServer({
 
 server.tool(
     "fetch-weather",
-    "tool to fetch weather of a city",
+    "Herramienta para obtener el clima",
     {
         city: z.string().describe("City name"),
     }, 

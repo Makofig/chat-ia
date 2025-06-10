@@ -19,7 +19,7 @@ beam_size=5
 best_of=5
 temperature=(0.0, 0.2, 0.4, 0.6, 0.8, 1.0)
 
-decode_options = dict(language="es", best_of=best_of, beam_size=beam_size, temperature=temperature)
+decode_options = dict(language="en", best_of=best_of, beam_size=beam_size, temperature=temperature)
 transcribe_options = dict(task="transcribe", **decode_options)
 try:
     resultado = modelo.transcribe(archivo, **transcribe_options)
