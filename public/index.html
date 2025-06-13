@@ -8,7 +8,7 @@
     <link href="./output.css" rel="stylesheet"> 
     <title>Inicio</title>
 </head>
-<body class="bg-gray-100 text-gray-900 min-h-screen flex flex-col">
+<body class="bg-gray-100 text-gray-900 min-h-screen grid grid-rows-[auto_1fr]">
 
     <!-- 🧭 NAVBAR -->
     <nav class="bg-white shadow-md px-6 py-4 flex justify-between items-center">
@@ -36,11 +36,11 @@
       </aside>
   
       <!-- 🧠 ÁREA PRINCIPAL -->
-      <main class="grid grid-cols-1 grid-rows-[1fr_50px] p-8 space-y-6 overflow-hidden">
+      <main class="grid grid-cols-1 grid-rows-[1fr_50px] p-4 space-y-6 overflow-hidden">
   
         <!-- 📥 Respuesta -->
         <div class="flex-grow overflow-hidden">
-          <div id="respond" class="w-full p-4 border border-gray-300 rounded-md bg-gray-50 min-h-[400px] max-h-[400px] overflow-y-scroll shadow-sm space-y-4">
+          <div id="respond" class="w-full p-4 border border-gray-300 rounded-md bg-gray-50 min-h-[440px] max-h-[440px] overflow-y-scroll shadow-sm space-y-4">
             <p class="text-gray-600">Aquí se mostrará la respuesta del análisis.</p>
           </div>
         </div>
@@ -55,26 +55,29 @@
         </div>
         -->
          <!-- 💬 Pregunta + Enviar -->
-         <form id="form-chat" class="space-y-2 block" enctype="multipart/form-data">
-          <div class="flex space-x-1">
-            <input
-              type="text"
-              name="message"
-              id="message"
-              placeholder="Realiza una pregunta?"
-              class="flex-grow p-3 border border-gray-300 rounded-md bg-white shadow-sm"
-              required
-            />
+         <form id="form-chat" class="py-2" enctype="multipart/form-data">
+          <div class="grid grid-cols-[1fr_80px_120px] grid-rows-[48px] space-x-1">
+            <div class="relative">
+              <textarea
+                rows="1"
+                name="message"
+                id="message"
+                placeholder="Realiza una pregunta?"
+                class="absolute bottom-0 w-full p-3 border border-gray-300 rounded-md bg-white shadow-sm resize-none overflow-y-auto leading-relaxed text-sm transition-all duration-150 ease-in-out"
+                style="min-height: 3rem; max-height: 9rem;"
+                required
+              ></textarea>
+            </div>
             <button
               type="submit"
-              class="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 transition"
+              class="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 transition cursor-pointer"
             >
               Enviar
             </button>
             <button
               type="button"
               id="btn-grabar"
-              class="bg-indigo-600 text-white px-4 py-2 rounded-md mx-1px hover:bg-indigo-700 transition"
+              class="bg-indigo-600 max-h-[3rem] text-white px-4 py-2 rounded-md mx-1px hover:bg-indigo-700 transition cursor-pointer"
             >
               🎙️ Grabar
             </button>
@@ -99,6 +102,13 @@
     </script>
   </body>
   <script>
+    const textarea = document.getElementById("message");
+
+    textarea.addEventListener("input", () => {
+      textarea.style.height = "auto"; // Resetear altura
+      textarea.style.height = Math.min(textarea.scrollHeight, 144) + "px"; // 144px ≈ 3 líneas
+    });
+
     const form = document.getElementById("form-chat");
     const text = document.getElementById("message");
     //const respuesta = document.getElementById("respond");
@@ -145,7 +155,7 @@
       return withCodeBlocksFormatted;
     }
 
-    function appendResponse(content, type = "respuesta") {
+    function appendResponse(content, type = "assistant") {
       const container = document.getElementById("respond");
 
       const cleaned = cleanWrappingParagraph(content);
@@ -155,7 +165,7 @@
         "p-3", "rounded", "shadow", "mb-2", "max-w-[70%]", "break-words"
       );
 
-      if (type === "pregunta") {
+      if (type === "user") {
         message.classList.add("bg-blue-100", "text-blue-900", "ml-auto", "text-right");
       } else {
         message.classList.add("bg-gray-100", "text-gray-800", "mr-auto", "text-left");
@@ -171,6 +181,8 @@
       });
     }
 
+    const messageHistory = [];
+
     form.addEventListener("submit", async (e) => {
         e.preventDefault();
         //const mensaje = text.value.trim();
@@ -182,8 +194,9 @@
         const dataForm = new FormData(form);
         const formDataObject = Object.fromEntries(dataForm.entries());
         
+        messageHistory.push({role: "user", content: formDataObject.message});
         //if (!mensaje) return;
-        appendResponse(formDataObject.message, "pregunta");
+        appendResponse(formDataObject.message, "user");
         text.value = "";
         // respuesta.innerHTML = "<p class='text-gray-400 italic'>Cargando respuesta...</p>";
         // appendResponse("<p class='text-gray-400 italic'>Cargando respuesta...</p>");
@@ -194,14 +207,16 @@
                 headers: {
                 "Content-Type": "application/json", 
                 },
-                body: JSON.stringify({ formDataObject })
+                body: JSON.stringify({ messageHistory })
             });
 
             const data = await res.json();
-            const content = `<p>${data.respuesta || "No se recibió respuesta del servidor."}</p>`;
+            const content = data.respuesta || "No se recibió respuesta del servidor.";
             // appendResponse(content);
-            console.log("Respuesta del servidor:", data.respuesta);
-            appendResponse(content, "respuesta");
+            const textContent = cleanWrappingParagraph(content); 
+            messageHistory.push({role: "assistant", content: formatResponse(textContent)});
+            console.log("Historial:", messageHistory);
+            appendResponse(content, "assistant");
             // respuesta.innerHTML = `<p>${data.respuesta || "No se recibió respuesta del servidor."}</p>`;
             // esto es para reproducir el audio, deberiamos agregarlo en la respuesta
             // ANULAMOS EL AUDIO PARA AGILIZAR LA RESPUESTA 

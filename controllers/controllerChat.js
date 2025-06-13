@@ -39,68 +39,75 @@ const textToChat = async (req, res) => {
     try {
         // Obtener el mensaje o la transcripción
         const { query } = req.body; // Transcripción del audio (query)
-        
-        const { formDataObject } = req.body; // Contenido del formulario
-        
-        const message = formDataObject ? formDataObject.message : null; // Si existe formDataObject, obtener el mensaje
+        const { messageHistory = []} = req.body; // Mensaje del formulario (messageHistory)
+
+        const mensajesConNoThink = messageHistory.map(msg => {
+            if (msg.role === 'user') {
+                return {
+                    ...msg,
+                    content: msg.content?.endsWith("/no_think") ? msg.content : msg.content + " /no_think"
+                };
+            }
+            return msg;
+        });
+        // const { formDataObject } = req.body; // Contenido del formulario 
+        //const message = formDataObject ? formDataObject.message : null; // Si existe formDataObject, obtener el mensaje
         // Verificar que solo se reciba uno de los dos
+        /*
         if ((!query && !message) || (query && message)) {
             return res.status(400).json({ error: "Debe enviar solo uno de los dos: el mensaje o la transcripción del audio" });
         }
-        const contextoPath = path.join("uploads", "contexto.txt");
-        let contextoSeguro = ""; 
+        */
+        if (!query && messageHistory.length === 0) {
+            return res.status(400).json({ error: "Debe enviar un mensaje o un historial de conversación." });
+        }
+        // Validar longitud del último mensaje del usuario
+        const lastMessage = query || messageHistory.at(-1)?.content;
+        if (!lastMessage || lastMessage.length > 1000) {
+            return res.status(400).json({ error: "El mensaje no puede tener más de 1000 caracteres." });
+        }
 
-        if (!fs.existsSync(contextoPath)) {
-            contextoSeguro = 'Contestar en español, con un tono de voz neutral';       } else{
-            let contexto = fs.readFileSync(contextoPath, "utf8");
-            if (contexto.trim() === "") {
-                contextoSeguro = 'Contestar en español, con un tono de voz neutral';
-            } else {
-                const contextoLimit = contexto.slice(0, 3000).trim();
-                contextoSeguro = contextoLimit
-                    .replace(/[\r\n]+/g, ' ')
-                    .replace(/"/g, '\\"')
-                    .replace(/\*/g, '')
-                    .trim();
+        const contextoPath = path.join("uploads", "contexto.txt");
+        let contextoSeguro = "Contestar en español"; 
+
+        if (fs.existsSync(contextoPath)) {
+            const contexto = fs.readFileSync(contextoPath, "utf8").trim();
+            if (contexto !== "") {
+                const contextoLimit = contexto.slice(0, 3000).replace(/[\r\n]+/g, ' ').replace(/"/g, '\\"').replace(/\*/g, '').trim();
+                contextoSeguro = `Contestar en español, con un tono de voz neutral. ${contextoLimit}`;
             }
         }
         
         // Verificar si el mensaje tiene más de 1000 caracteres
+        /*
         const userMessage = query || message ;
         if (userMessage.length > 1000) {
             return res.status(400).json({ error: "El mensaje no puede tener más de 1000 caracteres" });
         }
-
+        */
+        console.log(mensajesConNoThink)
+        // Construcción de mensajes: prompt system + historial (+ query si hay)
+        const messagePromt = [
+            { role: 'system', content: contextoSeguro },
+            ...mensajesConNoThink,
+            ...(query ? [{ role: 'user', content: query + "/no_think" }] : [])
+        ];
+        /*
         const prompt = "Contestar en español, con un tono de voz neutral" + contextoSeguro;
         let promptMessage = userMessage + "/no_think";
-       
-        /*
-        const completion = await openai.chat.completions.create({
-            messages: [{ role: "user", 
-                "content": [{
-                    "type": "text",
-                    "text": userMessage,
-                }] 
-            }],
-            model: "google/gemma-2-9b-it:free",
-            tool_choice: "auto", 
-            tools: [
-                {
-                    type: "mcp",
-                    mcp_url: "http://localhost:5010",
-                }
-            ]       
-        });*/
+        const messagePromt = [
+            { role: 'system', content: prompt },
+            ...(message || [])
+        ]
+        */
+        //.concat({ role: 'user', content: promptMessage });
         // Llamar a al modelo desde http://localhost:11434/api/chat
         const respuestaIA  = await fetch(`${modelLocal}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 model: 'qwen3:30b', // o mistral 
-                messages: [
-                    { role: 'system', content: prompt },
-                    { role: 'user', content: promptMessage }
-                ],
+                messages: messagePromt,
                 options: {
                     "repeat_penalty": 1,
                     "stop": [
@@ -126,8 +133,9 @@ const textToChat = async (req, res) => {
             const errorText = await respuestaIA.text();
             throw new Error(`Error del modelo: ${respuestaIA.status} - ${errorText}`);
         }
-        const raw = await respuestaIA.text(); // Leer como texto primero
 
+        const raw = await respuestaIA.text(); 
+        console.log("Respuesta cruda de OpenAI:", raw); // Log the raw response from OpenAI
         let data; 
         try{
             data = JSON.parse(raw); 
@@ -168,16 +176,7 @@ const audioGrabar = async (req, res) => {
     if (!archivo) {
         return res.status(400).json({ error: 'No se ha subido ningún archivo' });
     }
-    /*
-    const filePath = path.join("uploads", archivo.filename); // Ruta del archivo subido
-    if (!fs.existsSync(filePath)) {
-        return res.status(404).json({ error: 'Archivo no encontrado' });
-    }
-    */
-    // nombre fijo del archivo de audio
-    // const nombreFijo = "audio.wav"; // Nombre fijo del archivo de audio
-    // const rutaAudio = path.resolve("uploads", nombreFijo); // Ruta del archivo subido
-    // fs.renameSync(archivo.path, rutaAudio); // Renombrar el archivo a .wav
+   
     const rutaAudio = path.resolve(archivo.path); // Ruta del archivo subido
     console.log("Ruta del archivo de audio:", rutaAudio); // Log the audio file path
     const rutaFinal = rutaAudio + ".wav"; // Ruta del archivo de audio final
@@ -188,11 +187,16 @@ const audioGrabar = async (req, res) => {
     // Ejecutar Python con Whisper 
     try {
         const { stdout, stderr } = await execPromise(`python transcribir.py "${rutaFinal}"`, { encoding: 'UTF-8' });
+        /*
         if (stderr) {
             console.error(`Error en el script de Python: ${stderr}`);
             return res.status(500).json({ error: "Error en el procesamiento del audio" });
         }
-       
+        */
+        if (stderr) {
+            console.warn("⚠️ Advertencia desde Python:", stderr);
+            // No retornamos aún: puede ser solo un warning, seguimos
+        }
         const textoTranscrito = Buffer.from(stdout, 'UTF-8').toString().trim(); // Convertir el buffer a string
         const soloTexto = textoTranscrito.replace(/^.*\r?\n/, '');
 
