@@ -55,7 +55,7 @@
         </div>
         -->
          <!-- 💬 Pregunta + Enviar -->
-         <form id="form-chat" class="py-2" enctype="multipart/form-data">
+         <form id="form-chat" enctype="multipart/form-data">
           <div class="grid grid-cols-[1fr_80px_120px] grid-rows-[48px] space-x-1">
             <div class="relative">
               <textarea
@@ -63,7 +63,7 @@
                 name="message"
                 id="message"
                 placeholder="Realiza una pregunta?"
-                class="absolute bottom-0 w-full p-3 border border-gray-300 rounded-md bg-white shadow-sm resize-none overflow-y-auto leading-relaxed text-sm transition-all duration-150 ease-in-out"
+                class="absolute bottom-0 w-full p-2 border border-gray-300 rounded-md bg-white shadow-sm resize-none overflow-y-auto leading-relaxed text-base transition-all duration-150 ease-in-out"
                 style="min-height: 3rem; max-height: 9rem;"
                 required
               ></textarea>
@@ -224,7 +224,7 @@
             //audio.play();
         } catch (err) {
             console.error(err);
-            respuesta.innerHTML = `<p class="text-red-500">Ocurrió un error al enviar la consulta.</p>`;
+            appendResponse("Ocurrió un error al enviar la consulta", "assistant");
         }
     });
 
@@ -302,7 +302,7 @@
 
                 const data = await res.json();
                 console.log("Respuesta del servidor:", data);
-                appendResponse(data.respuesta, "pregunta");
+                appendResponse(data.respuesta, "user");
                 //mensaje.textContent = `🧠 Texto: ${data.respuesta}`;
                 // esto es para reproducir el audio, deberiamos agregarlo en la respuesta
                 //const audio = new Audio("data:audio/mp3;base64," + data.audio);
@@ -321,7 +321,7 @@
                 const chatData = await chatResponse.json();
                 
                 //respuesta.innerHTML = `<p>${chatData.respuesta || "No se recibió respuesta del servidor."}</p>`;
-                appendResponse(chatData.respuesta, "respuesta");
+                appendResponse(chatData.respuesta, "assistant");
                 // const audio = new Audio("data:audio/wav;base64," + chatData.audio);
                 // audio.play();
               
@@ -329,7 +329,7 @@
             };
 
             mediaRecorder.start();
-            btn.textContent = '🛑 Detener grabación';
+            btn.textContent = '🛑 Detener';
             
         } else if (mediaRecorder.state === 'recording') {
             mediaRecorder.stop();

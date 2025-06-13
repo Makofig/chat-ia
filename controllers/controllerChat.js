@@ -33,7 +33,8 @@ const openai = new OpenAI({
 }); 
 */
 // URL del modelo local o remoto
-const modelLocal = process.env.IA_URL || "http://localhost:11434/api/chat";  
+const modelLocal = process.env.MODEL_URL || "http://localhost:11434/api/chat";  
+const nameModel = process.env.MODEL_NAME || "qwen3:30b"; 
 
 const textToChat = async (req, res) => {
     try {
@@ -106,7 +107,7 @@ const textToChat = async (req, res) => {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                model: 'qwen3:30b', // o mistral 
+                model: nameModel, 
                 messages: messagePromt,
                 options: {
                     "repeat_penalty": 1,

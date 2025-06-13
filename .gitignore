@@ -5,3 +5,5 @@ output/*.mp3
 deepchat/
 *.wav 
 *.mp3
+*.txt
+*.pdf 
