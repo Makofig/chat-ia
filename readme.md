@@ -35,7 +35,7 @@ Asegurate de que el modelo LLM esté corriendo localmente en esa URL antes de in
 ## ▶️ Instalación y ejecución
 1. Clonar el repositorio
 ```
-git clone https://github.com/makofig/chat-ia.git
+git clone https://github.com/Makofig/chat-ia.git
 cd chat-ia
 ```
 2. Instalar dependencias Node.js
