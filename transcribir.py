@@ -24,7 +24,6 @@ transcribe_options = dict(task="transcribe", **decode_options)
 try:
     resultado = modelo.transcribe(archivo, **transcribe_options)
     # Mostramos el texto resultante de la transcripción
-    print("Texto transcrito:")
     print(resultado["text"]) 
     # Guardamos el resultado en un archivo de texto
     save_file(resultado["text"])
