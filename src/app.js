@@ -37,6 +37,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.static('public'));
 app.use('/', router); // Usar el router importado 
 app.use('/', routerUpload); // Usar el router importado
+
 // Middleware para manejar las solicitudes a la ruta raíz
 
 app.get('/', (req, res) => {

@@ -2,7 +2,9 @@ import whisper
 import sys
 from whisper.utils import get_writer
 import io 
+import warnings
 
+warnings.filterwarnings("ignore", category=FutureWarning)
 ##def save_file(results, format='txt'): 
     ##writer = get_writer(format, './output/')
     ##writer(results, f'transcripcion.{format}')

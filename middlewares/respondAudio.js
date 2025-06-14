@@ -5,7 +5,7 @@ import path from 'path';
 
 async function respondAudio(textoSeguro) {
     return new Promise((resolve, reject) => {
-        exec(`python tts.py "${textoSeguro}"`, { encoding: 'utf-8' }, (error, stdout, stderr) => {
+        exec(`python tts_xtts.py "${textoSeguro}"`, { encoding: 'utf-8' }, (error, stdout, stderr) => {
             if (!textoSeguro || textoSeguro.trim() === "") {
                 console.error("El texto para generar audio está vacío.");
                 return reject("El texto está vacío. No se puede generar el audio.");

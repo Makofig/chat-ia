@@ -3,15 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!--<link href="./output.css" rel="stylesheet">-->
+    <!--<script src="https://cdn.tailwindcss.com"></script>-->
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <link href="./output.css" rel="stylesheet"> 
     <title>Inicio</title>
 </head>
 <body class="bg-gray-100 text-gray-900 min-h-screen grid grid-rows-[auto_1fr]">
 
     <!-- 🧭 NAVBAR -->
     <nav class="bg-white shadow-md px-6 py-4 flex justify-between items-center">
-      <h1 class="text-xl font-bold text-indigo-600">Chat-ia</h1>
+      <h1 class="text-xl font-bold text-indigo-600">Chat-IA</h1>
       <div class="space-x-4">
         <a href="#" class="text-gray-600 hover:text-indigo-600">Inicio</a>
         <a href="#" class="text-gray-600 hover:text-indigo-600">Ayuda</a>
@@ -22,10 +23,10 @@
     <div class="grid grid-cols-[250px_1fr] h-full">
   
       <!-- 🧭 SIDEBAR IZQUIERDA -->
-      <aside class="w-63 min-w-[200px] max-w-[300px] bg-white p-6 shadow-inner flex flex-col space-y-4">
+      <aside class=" bg-white p-6 shadow-inner flex flex-col space-y-4">
         <div>
           <h2 class="text-lg font-semibold mb-2">Cargar archivo</h2>
-          <input type="file" class="w-full p-2 border border-gray-300 rounded-md bg-white shadow-sm" />
+          <input type="file" class="w-full p-2 border border-gray-300 rounded-md bg-white shadow-sm cursor-pointer" />
         </div>
         <div>
           <button id="btn-analizar" class="bg-indigo-600 text-white w-full py-2 rounded-md hover:bg-indigo-700 transition">
@@ -35,40 +36,48 @@
       </aside>
   
       <!-- 🧠 ÁREA PRINCIPAL -->
-      <main class="flex-grow p-8 space-y-6 max-w-4xl overflow-hidden">
+      <main class="grid grid-cols-1 grid-rows-[1fr_50px] p-4 space-y-6 overflow-hidden">
   
         <!-- 📥 Respuesta -->
         <div class="flex-grow overflow-hidden">
-          <label class="block mb-2 text-sm font-medium text-gray-700">Respuesta</label>
-          <div id="respond" class="w-full p-4 border border-gray-300 rounded-md bg-gray-50 min-h-[150px] max-h-[300px] overflow-y-auto shadow-sm">
+          <div id="respond" class="w-full p-4 border border-gray-300 rounded-md bg-gray-50 min-h-[440px] max-h-[440px] overflow-y-scroll shadow-sm space-y-4">
             <p class="text-gray-600">Aquí se mostrará la respuesta del análisis.</p>
           </div>
         </div>
 
+        <!-- 📥 Respuesta -->
+        <!-- 
+        <div class="flex-grow overflow-hidden">
+          <label class="block mb-2 text-sm font-medium text-gray-700">Transcripción</label>
+          <div id="respond-audio" class="w-full p-4 border border-gray-300 rounded-md bg-gray-50 min-h-[150px] max-h-[150px] overflow-y-auto shadow-sm">
+            <p class="text-gray-600">Aquí se mostrará la Transcripción del audio</p>
+          </div>
+        </div>
+        -->
          <!-- 💬 Pregunta + Enviar -->
-         <form id="form-chat" class="space-y-2" enctype="multipart/form-data">
-          <label for="message" class="block text-sm font-medium text-gray-700">
-            Preguntale algo a los datos
-          </label>
-          <div class="flex space-x-1">
-            <textarea
-              rows="1"
-              name="message"
-              id="message"
-              placeholder="Ej: ¿Qué columnas tienen datos faltantes?"
-              class="flex-grow p-3 border border-gray-300 rounded-md bg-white shadow-sm"
-              required
-            ></textarea>
+         <form id="form-chat" enctype="multipart/form-data">
+          <div class="grid grid-cols-[1fr_80px_120px] grid-rows-[48px] space-x-1">
+            <div class="relative">
+              <textarea
+                rows="1"
+                name="message"
+                id="message"
+                placeholder="Realiza una pregunta?"
+                class="absolute bottom-0 w-full p-2 border border-gray-300 rounded-md bg-white shadow-sm resize-none overflow-y-auto leading-relaxed text-base transition-all duration-150 ease-in-out"
+                style="min-height: 3rem; max-height: 9rem;"
+                required
+              ></textarea>
+            </div>
             <button
               type="submit"
-              class="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 transition"
+              class="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 transition cursor-pointer"
             >
               Enviar
             </button>
             <button
               type="button"
               id="btn-grabar"
-              class="bg-indigo-600 text-white px-4 py-2 rounded-md mx-1px hover:bg-indigo-700 transition"
+              class="bg-indigo-600 max-h-[3rem] text-white px-4 py-2 rounded-md mx-1px hover:bg-indigo-700 transition cursor-pointer"
             >
               🎙️ Grabar
             </button>
@@ -77,43 +86,146 @@
   
       </main>
     </div>
-  
+    
+    <!-- Highlight.js CSS (tema) -->
+    <!--<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css">-->
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/atom-one-dark.min.css">
+    <!-- Highlight.js JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+
+    <!-- Inicializar Highlight.js -->
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        hljs.highlightAll();
+      });
+    </script>
   </body>
   <script>
+    const textarea = document.getElementById("message");
+
+    textarea.addEventListener("input", () => {
+      textarea.style.height = "auto"; // Resetear altura
+      textarea.style.height = Math.min(textarea.scrollHeight, 144) + "px"; // 144px ≈ 3 líneas
+    });
+
     const form = document.getElementById("form-chat");
-    const input = document.getElementById("message");
-    const respuesta = document.getElementById("respond");
+    const text = document.getElementById("message");
+    //const respuesta = document.getElementById("respond");
+    function escapeHTML(str) {
+      return str
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;");
+    }
+    function isLikelyHTML(text) {
+      // Detecta si contiene etiquetas HTML comunes para código
+      return /<\/?(html|body|main|section|div|p|h[1-6]|title|head)[^>]*>/i.test(text);
+    }
+    function cleanWrappingParagraph(text) {
+      return text
+        .trim()
+        .replace(/^<p>/, '')
+        .replace(/<\/p>$/, '')
+        .replace(/<think>/g, '')
+        .replace(/<\/think>/g, '')
+        .trim();
+    }
+    /*
+    function formatCodeBlocks(text) {
+      return text.replace(/```(\w+)?\n([\s\S]*?)```/g, (match, lang, code) => {
+        const escapedCode = escapeHTML(code);
+        return `<pre class="bg-gray-800 text-white text-sm rounded p-3 overflow-x-auto"><code class="language-${lang || 'plaintext'}">${escapedCode}</code></pre>`;
+      });
+    }
+    */
+    function formatResponse(text) {
+      // Primero formatea bloques de código con backticks
+      const withCodeBlocksFormatted = text.replace(/```(\w+)?\n([\s\S]*?)```/g, (match, lang, code) => {
+        const escapedCode = escapeHTML(code);
+        return `<pre class="bg-gray-800 text-white text-sm rounded p-3 overflow-x-auto"><code class="language-${lang || 'plaintext'}">${escapedCode}</code></pre>`;
+      });
+
+      // Si el texto no tenía bloques, y es probable HTML, mostrarlo como código
+      if (!/```/.test(text) && isLikelyHTML(text)) {
+        return `<pre class="bg-gray-800 text-white text-sm rounded p-3 overflow-x-auto"><code>${escapeHTML(text)}</code></pre>`;
+      }
+
+      // Si no cumple ninguna condición, devolver el texto tal cual (puede contener HTML normal)
+      return withCodeBlocksFormatted;
+    }
+
+    function appendResponse(content, type = "assistant") {
+      const container = document.getElementById("respond");
+
+      const cleaned = cleanWrappingParagraph(content);
+
+      const message = document.createElement("div");
+      message.classList.add(
+        "p-3", "rounded", "shadow", "mb-2", "max-w-[70%]", "break-words"
+      );
+
+      if (type === "user") {
+        message.classList.add("bg-blue-100", "text-blue-900", "ml-auto", "text-right");
+      } else {
+        message.classList.add("bg-gray-100", "text-gray-800", "mr-auto", "text-left");
+      }
+
+      message.innerHTML = formatResponse(cleaned);
+
+      container.appendChild(message);
+      container.scrollTop = container.scrollHeight;
+      // Aplicar resaltado con highlight.js a los nuevos bloques
+      container.querySelectorAll('pre code').forEach((block) => {
+        hljs.highlightElement(block);
+      });
+    }
+
+    const messageHistory = [];
 
     form.addEventListener("submit", async (e) => {
         e.preventDefault();
-        //const mensaje = input.value.trim();
+        //const mensaje = text.value.trim();
+        // Eliminar el mensaje inicial si existe
+        const placeholder = document.querySelector("#respond p.text-gray-600");
+        if (placeholder) {
+          placeholder.remove();
+        }
         const dataForm = new FormData(form);
         const formDataObject = Object.fromEntries(dataForm.entries());
         
+        messageHistory.push({role: "user", content: formDataObject.message});
         //if (!mensaje) return;
-
-        respuesta.innerHTML = "<p class='text-gray-400 italic'>Cargando respuesta...</p>";
+        appendResponse(formDataObject.message, "user");
+        text.value = "";
+        // respuesta.innerHTML = "<p class='text-gray-400 italic'>Cargando respuesta...</p>";
+        // appendResponse("<p class='text-gray-400 italic'>Cargando respuesta...</p>");
 
         try {
             const res = await fetch("/api/chat", {
                 method: "POST",
                 headers: {
-                "Content-Type": "application/json"
+                "Content-Type": "application/json", 
                 },
-                body: JSON.stringify({ formDataObject })
+                body: JSON.stringify({ messageHistory })
             });
 
             const data = await res.json();
-            respuesta.innerHTML = `<p>${data.respuesta || "No se recibió respuesta del servidor."}</p>`;
+            const content = data.respuesta || "No se recibió respuesta del servidor.";
+            // appendResponse(content);
+            const textContent = cleanWrappingParagraph(content); 
+            messageHistory.push({role: "assistant", content: formatResponse(textContent)});
+            console.log("Historial:", messageHistory);
+            appendResponse(content, "assistant");
+            // respuesta.innerHTML = `<p>${data.respuesta || "No se recibió respuesta del servidor."}</p>`;
             // esto es para reproducir el audio, deberiamos agregarlo en la respuesta
-            const audio = new Audio("data:audio/mp3;base64," + data.audio);
-            audio.play();
+            // ANULAMOS EL AUDIO PARA AGILIZAR LA RESPUESTA 
+            //const audio = new Audio("data:audio/mp3;base64," + data.audio);
+            //audio.play();
         } catch (err) {
             console.error(err);
-            respuesta.innerHTML = `<p class="text-red-500">Ocurrió un error al enviar la consulta.</p>`;
+            appendResponse("Ocurrió un error al enviar la consulta", "assistant");
         }
-
-        input.value = "";
     });
 
     // Cargar archivo y enviar al servidor
@@ -140,9 +252,9 @@
           });
 
           const data = await response.json();
-          console.log("Respuesta del servidor:", data);
+          console.log("Respuesta del servidor:", data.respond);
 
-          if (data.contenido) {
+          if (data.respond) {
             alert("Archivo analizado correctamente. Mira la consola para ver el contenido.");
             // Podés también mostrar el resultado en pantalla si querés
           } else if (data.error) {
@@ -156,12 +268,17 @@
     });
 
     const btn = document.getElementById("btn-grabar");
-    const mensaje = document.getElementById("respond-audio");
+    //const mensaje = document.getElementById("respond-audio");
 
     let mediaRecorder;
     let audioChunks = [];
 
     btn.addEventListener('click', async () => {
+        const placeholder = document.querySelector("#respond p.text-gray-600");
+        if (placeholder) {
+          placeholder.remove();
+        }
+
         if (!mediaRecorder || mediaRecorder.state === 'inactive') {
             const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
             mediaRecorder = new MediaRecorder(stream);   
@@ -176,7 +293,7 @@
                 const blob = new Blob(audioChunks, { type: 'audio/wav' });
                 const formData = new FormData();
                 formData.append('audio', blob, 'audio.wav');
-                mensaje.textContent = '⏳ Enviando audio...';
+                //mensaje.textContent = '⏳ Enviando audio...';
                 
                 const res = await fetch('/api/audio', {
                     method: 'POST',
@@ -185,7 +302,8 @@
 
                 const data = await res.json();
                 console.log("Respuesta del servidor:", data);
-                mensaje.textContent = `🧠 Texto: ${data.respuesta}`;
+                appendResponse(data.respuesta, "user");
+                //mensaje.textContent = `🧠 Texto: ${data.respuesta}`;
                 // esto es para reproducir el audio, deberiamos agregarlo en la respuesta
                 //const audio = new Audio("data:audio/mp3;base64," + data.audio);
                 //audio.play();
@@ -202,16 +320,16 @@
 
                 const chatData = await chatResponse.json();
                 
-                respuesta.innerHTML = `<p>${chatData.respuesta || "No se recibió respuesta del servidor."}</p>`;
-
-                const audio = new Audio("data:audio/wav;base64," + chatData.audio);
-                audio.play();
+                //respuesta.innerHTML = `<p>${chatData.respuesta || "No se recibió respuesta del servidor."}</p>`;
+                appendResponse(chatData.respuesta, "assistant");
+                // const audio = new Audio("data:audio/wav;base64," + chatData.audio);
+                // audio.play();
               
                 audioChunks = []; // Limpiar los chunks de audio después de enviar
             };
 
             mediaRecorder.start();
-            btn.textContent = '🛑 Detener grabación';
+            btn.textContent = '🛑 Detener';
             
         } else if (mediaRecorder.state === 'recording') {
             mediaRecorder.stop();

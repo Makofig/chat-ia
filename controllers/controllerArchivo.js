@@ -32,6 +32,19 @@ async function leerPdfConPdf2json(filePath) {
     });
 }
 
+function limpiarTextoExtraido(texto) {
+  // 1. Unir letras separadas artificialmente (por espacios)
+  texto = texto.replace(/(?:\b\w\s)+(?:\w\b)/g, (match) => match.replace(/\s/g, ''));
+
+  // 2. Reemplazar múltiples espacios por uno solo
+  texto = texto.replace(/\s{2,}/g, ' ');
+
+  // 3. Arreglar saltos de línea innecesarios
+  texto = texto.replace(/\n{2,}/g, '\n').trim();
+
+  return texto;
+}
+
 export const analizarArchivo = async (req, res) => {
     try {
         const archivo = req.file; // Obtener el archivo subido
@@ -47,8 +60,13 @@ export const analizarArchivo = async (req, res) => {
         //const content = fs.readFileSync(filePath, 'utf-8'); // Leer el contenido del archivo
 
         const contenido = await leerPdfConPdf2json(filePath);
-        console.log("Contenido del archivo:", contenido); // Log el contenido del archivo
-        res.status(200).json({ contenido });
+        const textoLimpio = limpiarTextoExtraido(contenido); 
+        //const textoExtraido = contenido; 
+        const txtPath = path.join("uploads", "contexto.txt"); 
+
+        fs.writeFileSync(txtPath, textoLimpio, "utf-8" ); 
+
+        res.status(200).json({ respond: contenido });
     } catch (error) {
         console.error("Error en analizarArchivo:", error);
         res.status(500).json({ error: "Error interno del servidor" });
